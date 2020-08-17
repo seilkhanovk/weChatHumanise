@@ -14,3 +14,17 @@ export type WeChatMessage2send = {
   toUsername: string
   fromUsername: string
 }
+
+export type WeChatIncoming = {
+  ToUserName: string,
+  FromUserName: string,
+  CreateTime: string
+  MsgType: string,
+  Content: string,
+  MsgId: string
+}
+
+export type WeChatButton = {
+  type: string,
+  value: string
+}

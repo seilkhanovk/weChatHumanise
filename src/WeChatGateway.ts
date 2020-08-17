@@ -99,7 +99,7 @@ export class WeChatGateway {
         json: true,
       })
     } catch (err) {
-      console.log(err)
+      throw Error('Could not send image' + err)
     }
   }
 

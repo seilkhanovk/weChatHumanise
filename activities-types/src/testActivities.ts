@@ -4,8 +4,6 @@ import { ActivityConversation } from './conversation'
 import { ActivityUser } from './user'
 import * as A from "./activities"
 
-
-
 export enum ProfileType {
     customer = 'customer',
     agent = 'agent',
@@ -37,45 +35,39 @@ export const quickReplyActivity: A.MessageActivity = {
         actions: [
             {
                 type: ActivityActionType.messageBack,
-                title: "Asiya1",
-                text: "Message1",
+                title: "Message Back",
+                text: "Message",
             },
             {
-                type: ActivityActionType.messageBack,
-                title: "Asiya2",
-                text: "Message2",
+                type: ActivityActionType.openUrl,
+                title: "Open URL",
+                value: "www.google.com"
             },
             {
-                type: ActivityActionType.messageBack,
-                title: "Asiya3",
-                text: "Message3",
+                type: ActivityActionType.downloadFile,
+                title: "Download File",
+                value: "www.somefile.com"
             },
+            {
+                type: ActivityActionType.showImage,
+                title: "Some image",
+                value: "https://coubsecure-s.akamaihd.net/get/b64/p/coub/simple/cw_timeline_pic/c39f919cd2e/f606e7e7f9a00b32f466f/med_1515525582_image.jpg"
+            },
+            {
+                type: ActivityActionType.signIn,
+                title: "Sign to following website",
+                value: "www.someplacetosign.com"
+            },
+            {
+                type: ActivityActionType.call,
+                title: "Call to following website",
+                value: "www.someplacetocall.kz"
+            }
         ]
     }
 }
 
-const someActivity: A.MessageActivity = {
-    type: A.ActivityType.message,
-    channelId: '1',
-    id: '1',
-    organizationId: '1',
-    recipientProfile: {
-        type: ProfileType.customer,
-        id: '1',
-        organizationId: '1',
-    },
-    senderProfileId: '2',
-    text: 'Some text',
-    attachments: [
-        {
-            contentType: ActivityMediaAttachmentType.imagePng,
-            contentUrl: 'https://some-url.com',
-        },
-    ],
-}
-
-
-export const someCarousel: A.MessageActivity = {
+export const messageWithTextOnlyActivity: A.MessageActivity = {
     type: A.ActivityType.message,
     channelId: '1',
     id: '1',
@@ -86,7 +78,44 @@ export const someCarousel: A.MessageActivity = {
         organizationId: 'wx741c63985577bd6b',
     },
     senderProfileId: '2',
-    text: "",
+    text: 'Some text',
+}
+
+export const messageWithSimpleAttachmentActivity: A.MessageActivity = {
+    type: A.ActivityType.message,
+    channelId: '1',
+    id: '1',
+    organizationId: '1',
+    recipientProfile: {
+        type: ProfileType.customer,
+        id: 'oaEn4s46XaKV-xnaZcRyAksqSByo',
+        organizationId: 'wx741c63985577bd6b',
+    },
+    senderProfileId: '2',
+    text: 'Some text',
+    attachments: [
+        {
+            contentType: ActivityMediaAttachmentType.imageJpg,
+            contentUrl: "https://stayhipp.com/wp-content/uploads/2020/08/netflix-.jpg",
+            name: "Haha Attachment"
+        },
+        {
+            contentType: ActivityMediaAttachmentType.imagePng,
+            contentUrl: "https://upload.wikimedia.org/wikipedia/en/thumb/a/a9/MarioNSMBUDeluxe.png/220px-MarioNSMBUDeluxe.png"
+        }
+    ]
+}
+export const someCarouselWithNoTextActivity: A.MessageActivity = {
+    type: A.ActivityType.message,
+    channelId: '1',
+    id: '1',
+    organizationId: '1',
+    recipientProfile: {
+        type: ProfileType.customer,
+        id: 'oaEn4s46XaKV-xnaZcRyAksqSByo',
+        organizationId: 'wx741c63985577bd6b',
+    },
+    senderProfileId: '2',
     attachmentLayout: 'carousel',
     attachments: [
         {

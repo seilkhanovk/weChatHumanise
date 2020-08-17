@@ -1,7 +1,7 @@
 import { WeChatIncomingActivity } from '../weChatTypes'
 
 export class WeChatFormatterHumanise {
-  public static async formatIncomingActivity(incomingActivity: WeChatIncomingActivity) {
+  public static formatIncomingActivity(incomingActivity: WeChatIncomingActivity) {
     const baseHumaniseActivity = {
       channelType: 'wechat',
       channelId: 1,
@@ -16,7 +16,7 @@ export class WeChatFormatterHumanise {
     return humaniseActivity
   }
 
-  private static async convertTextMessage(incomingActivity: WeChatIncomingActivity, baseHumaniseActivity) {
+  private static convertTextMessage(incomingActivity: WeChatIncomingActivity, baseHumaniseActivity) {
     const activity = {
       ...baseHumaniseActivity,
       type: 'message',

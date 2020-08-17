@@ -3,54 +3,57 @@ require('dotenv').config()
 
 import { WeChatUserModel } from './WeChatUserModel'
 import { WeChatFormatterHumanise } from './WeChatFormatters/WeChatFormatterHumanise'
-import { WeChatIncomingActivity } from './weChatTypes'
+import { WeChatIncomingActivity, WeChatButton } from './weChatTypes'
 import { WeChatApp } from './entity/WeChatApp'
-import { isUndefined } from 'util'
 import { WeChatGateway } from './WeChatGateway'
-import { Activity, ActivityType, AttachmentContentType, ActivityMediaAttachmentType } from '../activities-types/src'
+import { Activity, ActivityType, AttachmentContentType, ActivityMediaAttachmentType, ActivityAction, ActivityActionType } from '../activities-types/src'
 import { WeChatFormatterIncoming } from './WeChatFormatters/WeChatFormatterIncoming'
 import { redis } from './redisInstance'
 import { RedisModel } from "./RedisModel"
+import { Cryptography } from './Cryptography'
 
-const { TOKEN } = process.env
+const { TOKEN_ENCRYPTED } = process.env
 
 export class WeChatAppModel {
-  public static async handleIncomingActivities(weChatApp: WeChatApp, senderId: string, message: string) {
+
+  public static async handleIncomingActivity(weChatApp: WeChatApp, senderId: string, incomingMessage: string) {
+
     const weChatUser = await WeChatUserModel.findOrCreateWithProfile(senderId, weChatApp)
 
-    const incomingActivity: WeChatIncomingActivity = {
-      sender: weChatUser,
-      message: message,
-      weChatApp: weChatApp,
-    }
-
-    const humaniseFormattedActivity = await WeChatFormatterHumanise.formatIncomingActivity(incomingActivity)
-    // await WeChatGateway.downloadImageFromUrl(weChatApp, "https://mr-mem.ru/images/memes/mem-s-kotom-za-stolom.jpg")
-    // await WeChatGateway.sendTypingStatus(senderId, weChatApp)
-    let url = "https://kinda.media/upload/news/1561388125.png"
-    await WeChatGateway.sendImageActivity(senderId, weChatApp, url)
-  }
-
-  public static async handleIncomingActivity(weChatApp: WeChatApp, senderId: string, message: string) {
     const buttonMode = await redis.get(`buttonModeOnFor:${senderId}`)
     const quickReplyMode = await redis.get(`quickReplyModeOnFor:${senderId}`)
-    if (buttonMode) {
-      const button = await redis.get(`buttonNum:${message}of:${senderId}`)
-      if (button) {
-        console.log(button)
-        await WeChatGateway.sendMessageActivity(senderId, weChatApp, "Good job")
-        await RedisModel.deleteAttachmentButtons(senderId)
+
+    if (buttonMode || quickReplyMode) {
+      const button = await redis.hgetall(`buttonNum:${incomingMessage}of:${senderId}`)
+
+      if (button.value) {
+        await this.handleButtonValues(senderId, weChatApp, button)
       }
+
+      await RedisModel.deleteAttachmentButtons(senderId)
+      await RedisModel.deleteQuickReplyButtons(senderId)
+    } else {
+
+      const incomingActivity: WeChatIncomingActivity = {
+        sender: weChatUser,
+        message: incomingMessage,
+        weChatApp: weChatApp,
+      }
+      const humaniseFormattedActivity = WeChatFormatterHumanise.formatIncomingActivity(incomingActivity)
+      await WeChatGateway.sendMessageActivity(senderId, weChatApp, "Hi")
+      console.log(humaniseFormattedActivity)
     }
-    if (quickReplyMode) {
-      const button = await redis.get(`buttonNum:${message}of:${senderId}`)
-      if (button) {
-        console.log(button)
-        await WeChatGateway.sendMessageActivity(senderId, weChatApp, "Good job")
-        await RedisModel.deleteQuickReplyButtons(senderId)
-      }
+
+  }
+
+  private static async handleButtonValues(receiverId: string, weChatApp: WeChatApp, button: WeChatButton) {
+    if (button.type == ActivityActionType.showImage) {
+      await WeChatGateway.sendImageActivity(receiverId, weChatApp, button.value)
+    } else {
+      await WeChatGateway.sendMessageActivity(receiverId, weChatApp, button.value)
     }
   }
+
   public static async handleHumaniseActivity(incomingActivity: Activity) {
     const receiverId = incomingActivity.recipientProfile.id
     const appId = incomingActivity.recipientProfile.organizationId
@@ -90,22 +93,27 @@ export class WeChatAppModel {
     }
 
   }
+
   public static async appValidation(ctx) {
     const query = ctx.query
-    const isValid = this.checkSignature(query)
+    const isValid = await this.checkSignature(query)
     if (isValid) {
       ctx.body = query.echostr
       console.log('Successful verification')
     } else {
-      console.log('Could not verify weChat App')
-      ctx.status = 401
-      ctx.body = 'Invalid signature'
+      throw Error('Could not verify weChat App')
     }
   }
 
   public static checkSignature(query) {
-    const generatedSignature = this.getHashcode(query.timestamp, query.nonce, TOKEN)
+    const weChatAppToken = this.getWeChatAppToken()
+    const generatedSignature = this.getHashcode(query.timestamp, query.nonce, weChatAppToken)
     return generatedSignature == query.signature
+  }
+
+  private static getWeChatAppToken() {
+    const token = Cryptography.decrypt(TOKEN_ENCRYPTED)
+    return token
   }
 
   private static getHashcode(timestamp: string, nonce: string, token: string) {
@@ -116,30 +124,4 @@ export class WeChatAppModel {
     return shasum.digest('hex')
   }
 
-  public static async createWithProfile(appId: string, appSecret: string) {
-    const appInDB = await this.isAppInDB(appId, appSecret)
-    if (appInDB) {
-      console.log('WeChat app already in DB')
-      return
-    }
-
-    let weChatApp = WeChatApp.create({
-      appId: appId,
-      appSecret: appSecret,
-    })
-
-    await WeChatApp.save(weChatApp)
-
-    console.log('App saved in DB')
-  }
-
-  private static async isAppInDB(appId: string, appSecret: string) {
-    const weChatApp = await WeChatApp.findOne({
-      appId: appId,
-      appSecret: appSecret,
-    })
-    if (isUndefined(weChatApp)) {
-      return false
-    } else return true
-  }
 }

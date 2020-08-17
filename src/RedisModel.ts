@@ -1,5 +1,4 @@
 import { redis } from "./redisInstance"
-import { send } from "process"
 
 export class RedisModel {
     public static async deleteAttachmentButtons(senderId: string) {
@@ -12,7 +11,6 @@ export class RedisModel {
         for (let attachmentInd = 1; attachmentInd <= numberOfAttachments; attachmentInd++) {
             for (let buttonInd = 1; buttonInd <= numberOfButtons; buttonInd++) {
                 const buttonNumber = attachmentInd + "." + buttonInd
-                console.log(buttonNumber)
                 await redis.del(`buttonNum:${buttonNumber}of:${senderId}`)
             }
         }

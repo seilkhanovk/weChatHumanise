@@ -2,31 +2,30 @@ import { WeChatUser } from './entity/WeChatUser'
 import { WeChatApp } from './entity/WeChatApp'
 
 export class WeChatUserModel {
-  public static async findOrCreateWithProfile(senderId: string, weChatApp: WeChatApp) {
-    let weChatUser = await this.findProfile(senderId, weChatApp)
+  public static async findOrCreateWithProfile(userId: string, weChatApp: WeChatApp) {
+    let weChatUser = await this.findProfile(userId, weChatApp)
 
     if (!weChatUser) {
-      weChatUser = await this.createProfile(senderId, weChatApp)
+      weChatUser = await this.createProfile(userId, weChatApp)
     }
 
     return weChatUser
   }
 
-  private static async findProfile(senderId: string, weChatApp: WeChatApp) {
-    // not sure if im doing this right ... but it works
+  private static async findProfile(userId: string, weChatApp: WeChatApp) {
 
     const weChatUser = await WeChatUser.findOne({
-      weChatUserId: senderId,
+      weChatUserId: userId,
       weChatApp: weChatApp,
     })
 
     return weChatUser
   }
 
-  private static async createProfile(sendId: string, weChatApp: WeChatApp) {
+  private static async createProfile(userId: string, weChatApp: WeChatApp) {
     let weChatUser = WeChatUser.create({
       customerProfileId: '1',
-      weChatUserId: sendId,
+      weChatUserId: userId,
       weChatApp: weChatApp,
     })
 

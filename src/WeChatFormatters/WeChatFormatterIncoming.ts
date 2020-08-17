@@ -3,7 +3,7 @@ import { ActivityHeroCardAttachment, AttachmentContentType, ActivityAttachment, 
 import { WeChatGateway } from "../WeChatGateway"
 import { WeChatApp } from "../entity/WeChatApp"
 import { redis } from "../redisInstance"
-import { ActivityAction } from '../../activities-types/src'
+import { ActivityAction, ActivityOpenUrlAction, ActivityActionType } from '../../activities-types/src'
 const xml2js = require('xml2js')
 
 export class WeChatFormatterIncoming {
@@ -65,8 +65,8 @@ export class WeChatFormatterIncoming {
             notifyUser = false
           }
           maxButtons = Math.max(maxButtons, buttons.length)
-          const b = JSON.parse(JSON.stringify(buttons)) // !!!
-          await this.formatButtons(receiverId, weChatApp, b, attachmentInd)
+          const buttonsToFunction = JSON.parse(JSON.stringify(buttons)) // hacky way to pass readonly variable to the function
+          await this.formatButtons(receiverId, weChatApp, buttonsToFunction, attachmentInd)
         }
       }
     }
@@ -87,10 +87,10 @@ export class WeChatFormatterIncoming {
 
       await WeChatGateway.sendMessageActivity(receiverId, weChatApp, message)
 
-      let buttons = attachement.content.buttons
+      const buttons = attachement.content.buttons
       maxButtons = Math.max(maxButtons, buttons.length)
-      let b = JSON.parse(JSON.stringify(buttons)) // !!!
-      await this.formatButtons(receiverId, weChatApp, b, attachmentInd)
+      const buttonsToFunction = JSON.parse(JSON.stringify(buttons)) // hacky way to pass readonly variable to the function
+      await this.formatButtons(receiverId, weChatApp, buttonsToFunction, attachmentInd)
     }
     await redis.set(`numberOfAttachmentsFor:${receiverId}`, attachments.length)
     await redis.set(`numberOfButtonsFor:${receiverId}`, maxButtons)
@@ -106,9 +106,12 @@ export class WeChatFormatterIncoming {
       const message = buttonNumber + "\n" + button.title
       await WeChatGateway.sendMessageActivity(receiverId, weChatApp, message)
 
-      await redis.set(`buttonNum:${buttonNumber}of:${receiverId}`, button)
+      const value = button['value'] || button['text']
+      await redis.hmset(`buttonNum:${buttonNumber}of:${receiverId}`, { type: button.type, value: value })
+
     }
   }
+
   public static async formatMediaAttachment(receiverId: string, weChatApp: WeChatApp, attachments: ActivityAttachment[]) {
     for (let attachmentInd in attachments) {
       const attachment = attachments[attachmentInd] as ActivityMediaAttachment
@@ -129,7 +132,10 @@ export class WeChatFormatterIncoming {
       const buttonNumber: number = Number(actionInd) + 1
       message = buttonNumber + ".\n" + action.title
       await WeChatGateway.sendMessageActivity(receiverId, weChatApp, message)
-      await redis.set(`buttonNum:${buttonNumber}of:${receiverId}`, action)
+
+      let value = action['value'] || action['text']
+      await redis.hmset(`buttonNum:${buttonNumber}of:${receiverId}`, { type: action.type, value: value })
+
     }
     await redis.set(`numberOfButtonsFor:${receiverId}`, actions.length)
   }
