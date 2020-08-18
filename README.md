@@ -1,7 +1,7 @@
 
 # WeChatHumanise.ai project
 
-This project was done as an internship project for [humanise.ai](www.humanise.ai).
+This project was done as an internship project for www.humanise.ai .
 
 # What it does?
 
