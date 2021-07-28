@@ -9,7 +9,7 @@ This project is an extension for humanise.ai chatbot. Basically, it sends activi
 
 # How I can benefit from this project?
 
-If you are interested in building WeChat bots, then you should probably spend a while learning Chinese language as most of its documentation in Chinese. However, with the help of this project you can omit language learning part. No, it will not teach you Chinese so that you could talk about coronovirus with random Chinee. Just go to **WeChatGateway.ts** and gain valuable insights of WeChat Api. Probably in a month I will make a separate WeChat Api extension for Koa.js and Express.js. So, stay tuned and follow my github account :)
+If you are interested in building WeChat bots, then you should probably spend a while learning Chinese language as most of its documentation in Chinese. However, with the help of this project you can omit language learning part. No, it will not teach you Chinese so that you could talk about coronovirus with random Chinee. Just go to **WeChatGateway.ts** and gain valuable insights of WeChat Api. Probably in a month I will make a separate WeChat Api extension for Koa.js and Express.js. So, stay tuned and follow my github :)
 
 ## What Activities does it support?
 
